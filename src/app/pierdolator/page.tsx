@@ -1,13 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { insults, questions } from '@/lib/pierdolator-insults';
 import { getSafeAnimatedText } from '@/lib/text-animation';
 import { cn } from '@/lib/utils';
-import { RotateCcw, Skull } from 'lucide-react';
+import { AppHeader } from '@/components/app-header';
+import { ResultActions } from '@/components/result-actions';
+import { loadHistory, saveToHistory } from '@/lib/local-history';
+import { History } from 'lucide-react';
 
 export default function PierdolatorPage() {
+  const moduleKey = 'pierdolator';
+  const historyKey = useMemo(() => `chaos:history:${moduleKey}`, []);
+  const resultRef = useRef<HTMLDivElement>(null);
+
   const [currentInsult, setCurrentInsult] = useState<string>('');
   const [displayedInsult, setDisplayedInsult] = useState<string>('');
   const [insultLevel, setInsultLevel] = useState<number>(1);
@@ -15,13 +21,16 @@ export default function PierdolatorPage() {
   const [matrixColumns, setMatrixColumns] = useState<Array<{ id: number; x: number; delay: number }>>([]);
   const [shake, setShake] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [history, setHistory] = useState<string[]>(() =>
+    typeof window === 'undefined' ? [] : loadHistory(historyKey, 10).map((x) => x.text)
+  );
 
   useEffect(() => {
     // Matrix rain setup
     const columns = [];
     const width = typeof window !== 'undefined' ? window.innerWidth : 1000;
-    const colCount = Math.floor(width / 20); 
-    
+    const colCount = Math.floor(width / 20);
+
     for (let i = 0; i < colCount; i++) {
       columns.push({
         id: i,
@@ -87,6 +96,8 @@ export default function PierdolatorPage() {
     setInsultLevel(1);
     const insult = getRandomInsult(1);
     setCurrentInsult(insult);
+    saveToHistory(historyKey, insult, 30);
+    setHistory(loadHistory(historyKey, 10).map((x) => x.text));
   };
 
   const handleMoreInsults = () => {
@@ -94,6 +105,8 @@ export default function PierdolatorPage() {
     setInsultLevel(newLevel);
     const insult = getRandomInsult(newLevel);
     setCurrentInsult(insult);
+    saveToHistory(historyKey, insult, 30);
+    setHistory(loadHistory(historyKey, 10).map((x) => x.text));
   };
 
   const resetApp = () => {
@@ -105,6 +118,9 @@ export default function PierdolatorPage() {
 
   return (
     <div className="relative min-h-[100svh] flex flex-col font-mono bg-black text-white overflow-hidden">
+      <div className="relative z-30">
+        <AppHeader title="Pierdolator" />
+      </div>
       
       {/* Matrix Background */}
       <div className="matrix-bg fixed inset-0 z-0 opacity-20 pointer-events-none">
@@ -170,11 +186,14 @@ export default function PierdolatorPage() {
           <div className="w-full max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-500">
             
             {/* Insult Display */}
-            <div className={cn(
-              "min-h-[220px] sm:min-h-[300px] flex items-center justify-center p-4 sm:p-8 border-4 border-double bg-black/90 backdrop-blur-md shadow-2xl relative",
-              "transition-all duration-300 transform hover:scale-[1.02]",
-              insultLevel >= 3 ? "border-red-600" : "border-blue-500"
-            )}>
+            <div
+              ref={resultRef}
+              className={cn(
+                "min-h-[220px] sm:min-h-[300px] flex items-center justify-center p-4 sm:p-8 border-4 border-double bg-black/90 backdrop-blur-md shadow-2xl relative",
+                "transition-all duration-300 transform hover:scale-[1.02]",
+                insultLevel >= 3 ? "border-red-600" : "border-blue-500"
+              )}
+            >
               <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-current animate-pulse"></div>
               <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-current animate-pulse"></div>
               <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-current animate-pulse"></div>
@@ -197,6 +216,36 @@ export default function PierdolatorPage() {
                 <span className="animate-pulse bg-current w-[0.5em] h-[1em] inline-block align-middle ml-1"></span>
               </p>
             </div>
+
+            <ResultActions
+              moduleKey={moduleKey}
+              text={currentInsult}
+              shareTitle="PIERDOLATOR 3000"
+              exportRef={resultRef}
+              exportFileBase="pierdolator"
+            />
+
+            {history.length > 0 ? (
+              <div className="mx-auto max-w-3xl rounded-xl border border-white/10 bg-black/40 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm text-white/60">
+                  <History className="h-4 w-4" /> Ostatnie obelgi
+                </div>
+                <div className="grid gap-2">
+                  {history.slice(0, 5).map((h) => (
+                    <button
+                      key={h}
+                      className="text-left text-xs sm:text-sm rounded-lg border border-white/10 bg-black/60 hover:bg-black/80 px-3 py-2 transition-colors"
+                      onClick={() => {
+                        setIsInsulting(true);
+                        setCurrentInsult(h);
+                      }}
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             {/* Controls */}
             <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center items-center">

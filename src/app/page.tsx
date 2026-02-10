@@ -2,18 +2,24 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import { AlertTriangle, Pizza, Briefcase, Zap, BrainCircuit, Globe } from 'lucide-react';
+import { AppHeader } from '@/components/app-header';
+import {
+  AlertTriangle,
+  Pizza,
+  Briefcase,
+  Zap,
+  BrainCircuit,
+  Globe,
+  Tv,
+  TrendingUp,
+  Calculator,
+  Mic,
+  Skull,
+  Sparkles,
+} from 'lucide-react';
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 export default function Home() {
-  const router = useRouter();
-
-  // Force dark mode
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
 
   const modules = [
     {
@@ -36,7 +42,7 @@ export default function Home() {
       id: 'janusz',
       title: 'Symulator Janusza Biznesu',
       desc: 'Zatrudniaj na czarno, unikaj ZUS-u, kup Passata w TDI.',
-      icon: <Globe className="w-8 h-8 text-yellow-400" />, 
+      icon: <Briefcase className="w-8 h-8 text-yellow-400" />,
       color: 'border-yellow-500/30 hover:border-yellow-500',
       path: '/janusz'
     },
@@ -52,7 +58,7 @@ export default function Home() {
       id: 'sennik',
       title: 'Sennik Chaosu',
       desc: 'Freudowska analiza Twoich koszmarów (z nutką pogardy).',
-      icon: <Globe className="w-8 h-8 text-indigo-400" />,
+      icon: <Sparkles className="w-8 h-8 text-indigo-400" />,
       color: 'border-indigo-500/30 hover:border-indigo-500',
       path: '/sennik'
     },
@@ -60,7 +66,7 @@ export default function Home() {
       id: 'paski',
       title: 'Generator Pasków TVP',
       desc: 'Twórz własną propagandę. Paski grozy w 3 sekundy.',
-      icon: <Globe className="w-8 h-8 text-red-500" />,
+      icon: <Tv className="w-8 h-8 text-red-500" />,
       color: 'border-red-500/30 hover:border-red-500',
       path: '/paski'
     },
@@ -68,7 +74,7 @@ export default function Home() {
       id: 'podwyzka',
       title: 'Symulator Podwyżki',
       desc: 'Gra RPG: Pokonaj Szefa Janusza i zdobądź 50zł brutto.',
-      icon: <Briefcase className="w-8 h-8 text-green-400" />,
+      icon: <TrendingUp className="w-8 h-8 text-green-400" />,
       color: 'border-green-500/30 hover:border-green-500',
       path: '/podwyzka'
     },
@@ -76,7 +82,7 @@ export default function Home() {
       id: 'kalkulator',
       title: 'Kalkulator Zgonu',
       desc: 'Sprawdź ile Ci zostało (spoiler: niewiele).',
-      icon: <AlertTriangle className="w-8 h-8 text-slate-400" />,
+      icon: <Calculator className="w-8 h-8 text-slate-400" />,
       color: 'border-slate-500/30 hover:border-slate-500',
       path: '/kalkulator'
     },
@@ -84,7 +90,7 @@ export default function Home() {
       id: 'soundboard',
       title: 'Korpo Soundboard',
       desc: 'Niezbędnik na calle: ASAP, Deadline, Fakap.',
-      icon: <Zap className="w-8 h-8 text-blue-400" />,
+      icon: <Mic className="w-8 h-8 text-blue-400" />,
       color: 'border-blue-500/30 hover:border-blue-500',
       path: '/soundboard'
     },
@@ -92,14 +98,16 @@ export default function Home() {
       id: 'pierdolator',
       title: 'PIERDOLATOR 3000',
       desc: 'Generator obelg w stylu Matrixa. Zniszcz komuś dzień.',
-      icon: <AlertTriangle className="w-8 h-8 text-red-600 animate-pulse" />,
+      icon: <Skull className="w-8 h-8 text-red-600 animate-pulse" />,
       color: 'border-red-600 hover:border-red-500 bg-red-950/20',
       path: '/pierdolator'
     }
   ];
 
   return (
-    <main className="min-h-[100svh] bg-background flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6 relative overflow-hidden">
+    <main className="min-h-[100svh] bg-background relative overflow-hidden">
+      <AppHeader />
+      <div className="flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6">
       {/* Background Grid */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-10 pointer-events-none"></div>
       
@@ -145,6 +153,7 @@ export default function Home() {
             System v6.6.6 • Chaos Inc.
           </p>
         </footer>
+      </div>
       </div>
     </main>
   );

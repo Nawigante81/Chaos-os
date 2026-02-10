@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +8,10 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import { categories, excusesData, getRandomExcuse } from '@/lib/excuses';
-import { Copy, Volume2, Sparkles, AlertTriangle } from 'lucide-react';
+import { AppHeader } from '@/components/app-header';
+import { ResultActions } from '@/components/result-actions';
+import { loadHistory, saveToHistory } from '@/lib/local-history';
+import { Copy, Volume2, Sparkles, AlertTriangle, History } from 'lucide-react';
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string>('work');
@@ -16,6 +19,13 @@ export default function Home() {
   const [sadnessLevel, setSadnessLevel] = useState<number>(50);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  const moduleKey = 'wymowki';
+  const historyKey = useMemo(() => `chaos:history:${moduleKey}`, []);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const [history, setHistory] = useState<string[]>(() =>
+    typeof window === 'undefined' ? [] : loadHistory(historyKey, 10).map((x) => x.text)
+  );
 
   // Initialize voices
   useEffect(() => {
@@ -27,13 +37,13 @@ export default function Home() {
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // Force dark mode for the vibe
-    document.documentElement.classList.add('dark');
   }, []);
 
   const handleGenerate = () => {
     const excuse = getRandomExcuse(activeCategory as keyof typeof excusesData);
     setCurrentExcuse(excuse);
+    saveToHistory(historyKey, excuse, 30);
+    setHistory(loadHistory(historyKey, 10).map((x) => x.text));
   };
 
   const handleCopy = () => {
@@ -79,7 +89,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-[100svh] bg-background flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6 transition-colors duration-500">
+    <main className="min-h-[100svh] bg-background transition-colors duration-500">
+      <AppHeader title="Kreator Wymówek" />
+      <div className="flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6">
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 pointer-events-none"></div>
       
       <div className="z-10 w-full max-w-2xl space-y-8">
@@ -110,7 +122,10 @@ export default function Home() {
               </TabsList>
             </Tabs>
 
-            <div className="flex flex-col items-center justify-center p-6 min-h-[200px] border-2 border-dashed border-muted rounded-xl bg-muted/10 relative overflow-hidden group">
+            <div
+              ref={resultRef}
+              className="flex flex-col items-center justify-center p-6 min-h-[200px] border-2 border-dashed border-muted rounded-xl bg-muted/10 relative overflow-hidden group"
+            >
               {currentExcuse ? (
                 <p className="text-xl md:text-2xl font-mono text-center font-medium leading-relaxed animate-in zoom-in duration-300">
                   &quot;{currentExcuse}&quot;
@@ -122,6 +137,34 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            <ResultActions
+              moduleKey={moduleKey}
+              text={currentExcuse}
+              shareTitle="Kreator Wymówek 5000"
+              exportRef={resultRef}
+              exportFileBase="wymowka"
+            />
+
+            {history.length > 0 ? (
+              <div className="rounded-xl border border-border bg-card/50 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <History className="h-4 w-4" /> Ostatnie wyniki
+                </div>
+                <div className="grid gap-2">
+                  {history.slice(0, 5).map((h) => (
+                    <button
+                      key={h}
+                      className="text-left text-sm rounded-lg border border-border/60 bg-background/40 hover:bg-background/70 px-3 py-2 transition-colors"
+                      onClick={() => setCurrentExcuse(h)}
+                      title="Kliknij, aby wczytać"
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -181,6 +224,7 @@ export default function Home() {
         </p>
       </div>
       <Toaster />
+      </div>
     </main>
   );
 }
