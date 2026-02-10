@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 export default function GastroPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentInsult, setCurrentInsult] = useState('');
-  const [winner, setWinner] = useState<any>(null);
+  const [winner, setWinner] = useState<(typeof foodItems)[number] | null>(null);
 
   const handleLike = () => {
     // Winner!

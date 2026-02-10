@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Copy, Share2, Star, StarOff, ImageDown } from 'lucide-react';
+import { track } from '@/components/analytics';
 import { isFavorited, toggleFavorite } from '@/lib/local-history';
 import { toPng } from 'html-to-image';
 
@@ -32,6 +33,7 @@ export function ResultActions({
   const handleCopy = async () => {
     if (!trimmed) return;
     await navigator.clipboard.writeText(trimmed);
+    track('copy', { module: moduleKey });
     toast.success('Skopiowano', {
       description: 'Teraz wklej i udawaj, że to było spontaniczne.',
     });
@@ -50,6 +52,7 @@ export function ResultActions({
     try {
       if ('share' in navigator) {
         await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share(payload);
+        track('share', { module: moduleKey, method: 'native' });
         return;
       }
     } catch {
@@ -58,12 +61,14 @@ export function ResultActions({
 
     const composed = url ? `${trimmed}\n\n${url}` : trimmed;
     await navigator.clipboard.writeText(composed);
+    track('share', { module: moduleKey, method: 'clipboard' });
     toast('Brak natywnego share', { description: 'Skopiowałem do schowka (tekst + link).' });
   };
 
   const handleToggleFav = () => {
     if (!trimmed) return;
     const next = toggleFavorite(favKey, trimmed);
+    track('favorite_toggle', { module: moduleKey, on: next });
     toast(next ? 'Zapisane w ulubionych' : 'Usunięte z ulubionych');
   };
 
@@ -78,6 +83,7 @@ export function ResultActions({
       a.href = dataUrl;
       a.download = `${exportFileBase}.png`;
       a.click();
+      track('export_png', { module: moduleKey });
       toast.success('Pobrano PNG');
     } catch {
       toast.error('Nie udało się wyeksportować PNG');

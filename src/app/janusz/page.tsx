@@ -22,6 +22,15 @@ export default function JanuszPage() {
   const [zusAlert, setZusAlert] = useState(false);
   const [gameWon, setGameWon] = useState(false);
 
+  const triggerZusRaid = () => {
+    setZusAlert(true);
+    toast.error('KONTROLA Z ZUS-U!', {
+      description: 'Zabrali Ci połowę hajsu na składki. Złodzieje!',
+    });
+    setMoney(prev => Math.floor(prev / 2));
+    setTimeout(() => setZusAlert(false), 3000);
+  };
+
   // Auto-income loop
   useEffect(() => {
     const interval = setInterval(() => {
@@ -40,15 +49,6 @@ export default function JanuszPage() {
 
     return () => clearInterval(interval);
   }, [employees, scamLevel, gameWon]);
-
-  const triggerZusRaid = () => {
-    setZusAlert(true);
-    toast.error('KONTROLA Z ZUS-U!', {
-      description: 'Zabrali Ci połowę hajsu na składki. Złodzieje!',
-    });
-    setMoney(prev => Math.floor(prev / 2));
-    setTimeout(() => setZusAlert(false), 3000);
-  };
 
   const clickParowka = () => {
     setMoney(prev => prev + 10);

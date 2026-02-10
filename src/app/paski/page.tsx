@@ -2,6 +2,9 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { toJpeg, toPng } from 'html-to-image';
+import { AppHeader } from '@/components/app-header';
+import { ResultActions } from '@/components/result-actions';
+import { loadHistory, saveToHistory } from '@/lib/local-history';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertCircle, FileDown, Tv, Upload, Video } from 'lucide-react';
+import { AlertCircle, FileDown, Tv, Upload, Video, History } from 'lucide-react';
 import { toast } from 'sonner';
 
 const EXPORT_SIZES = {
@@ -26,7 +29,20 @@ type ExportSize = keyof typeof EXPORT_SIZES;
 
 type BackgroundKind = 'image' | 'video' | 'none';
 
+const PRESETS = [
+  'ATAK IDEOLOGII VEGE NA POLSKIE STOŁY',
+  'SZOK! MŁODZI NIE CHCĄ PRACOWAĆ ZA DOŚWIADCZENIE',
+  'TRAGEDIA: KTOŚ ZNOWU POWIEDZIAŁ "MAMY SYNERGIĘ"',
+  'ALARM! TINDER DLA JEDZENIA DZIELI NARÓD',
+  'PILNE: CHAOS OS PRZEJMUJE INTERNETY',
+];
+
 export default function PaskiPage() {
+  const moduleKey = 'paski';
+  const historyKey = useMemo(() => `chaos:history:${moduleKey}`, []);
+  const [history, setHistory] = useState<string[]>(() =>
+    typeof window === 'undefined' ? [] : loadHistory(historyKey, 10).map((x) => x.text)
+  );
   const [text, setText] = useState('ATAK IDEOLOGII VEGE NA POLSKIE STOŁY');
   const [mode, setMode] = useState<'blue' | 'red'>('blue');
   const [tickerEnabled, setTickerEnabled] = useState(false);
@@ -93,7 +109,6 @@ export default function PaskiPage() {
 
   useLayoutEffect(() => {
     if (tickerEnabled) {
-      setAutoFontSize(64);
       return;
     }
 
@@ -111,6 +126,7 @@ export default function PaskiPage() {
       node.style.fontSize = `${size}px`;
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- we measure DOM to fit the ticker text
     setAutoFontSize(size);
   }, [displayText, tickerEnabled, previewScale]);
 
@@ -147,6 +163,12 @@ export default function PaskiPage() {
 
     setBgKind(bgUrl.endsWith('.mp4') || bgUrl.endsWith('.webm') ? 'video' : 'image');
     setBgFileName(bgUrl.trim());
+  };
+
+  const remember = (t: string) => {
+    const payload = `${mode.toUpperCase()} | ${tickerEnabled ? 'TICKER' : 'STATIC'} | ${t}`;
+    saveToHistory(historyKey, payload, 50);
+    setHistory(loadHistory(historyKey, 10).map((x) => x.text));
   };
 
   const clearBackground = () => {
@@ -197,6 +219,7 @@ export default function PaskiPage() {
           ...sharedOptions,
         });
         downloadDataUrl(dataUrl, `pasek-${exportSize}.png`);
+        remember(displayText);
         return;
       }
 
@@ -206,6 +229,7 @@ export default function PaskiPage() {
         backgroundColor: '#050505',
       });
       downloadDataUrl(dataUrl, `pasek-${exportSize}.jpg`);
+      remember(displayText);
     } catch (error) {
       toast.error('Nie udało się wyeksportować', {
         description:
@@ -215,11 +239,14 @@ export default function PaskiPage() {
   };
 
   return (
-    <main className="min-h-[100svh] bg-[#0a0b10] flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6 relative overflow-hidden text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1a1b22_0%,transparent_55%)] opacity-80"></div>
-      <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-15 mix-blend-soft-light pointer-events-none"></div>
+    <main className="min-h-[100svh] bg-[#0a0b10] relative overflow-hidden text-white">
+      <AppHeader title="Paski TV" />
 
-      <div className="z-10 w-full max-w-6xl space-y-8 sm:space-y-10">
+      <div className="relative flex flex-col items-center justify-center p-4 xs:p-5 sm:p-6">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1a1b22_0%,transparent_55%)] opacity-80"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-15 mix-blend-soft-light pointer-events-none"></div>
+
+        <div className="relative z-10 w-full max-w-6xl space-y-8 sm:space-y-10">
         <header className="text-center space-y-3">
           <Tv className={`w-14 h-14 mx-auto ${mode === 'red' ? 'text-red-500' : 'text-sky-400'} animate-pulse`} />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-[0.08em] uppercase">
@@ -306,7 +333,7 @@ export default function PaskiPage() {
                           ref={textRef}
                           className={`font-black uppercase tracking-[0.12em] text-white ${theme.glow} ${tickerEnabled ? 'tv-ticker' : ''}`}
                           style={{
-                            fontSize: `${autoFontSize}px`,
+                            fontSize: `${tickerEnabled ? 64 : autoFontSize}px`,
                             whiteSpace: 'nowrap',
                           }}
                         >
@@ -335,7 +362,27 @@ export default function PaskiPage() {
                 placeholder="WIADOMOŚCI Z OSTATNIEJ CHWILI"
                 className="bg-black/60 border-white/15 text-white placeholder:text-white/40 h-12 font-black uppercase tracking-[0.08em]"
               />
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                {PRESETS.map((p) => (
+                  <Button
+                    key={p}
+                    type="button"
+                    variant="outline"
+                    className="border-white/15 text-white/80 hover:bg-white/10"
+                    onClick={() => setText(p.toUpperCase())}
+                  >
+                    {p}
+                  </Button>
+                ))}
+              </div>
             </div>
+
+            <ResultActions
+              moduleKey={moduleKey}
+              text={displayText}
+              shareTitle="Generator Pasków TV"
+            />
 
             <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
               <div className="space-y-3">
@@ -472,9 +519,33 @@ export default function PaskiPage() {
               <AlertCircle className="h-4 w-4" />
               PNG usuwa tło i zostawia tylko overlay. Jeśli używasz URL bez CORS, eksport może się nie udać.
             </div>
+
+            {history.length > 0 ? (
+              <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm text-white/70">
+                  <History className="h-4 w-4" /> Ostatnie
+                </div>
+                <div className="grid gap-2">
+                  {history.slice(0, 5).map((h) => (
+                    <button
+                      key={h}
+                      className="text-left text-xs sm:text-sm rounded-lg border border-white/10 bg-black/30 hover:bg-black/50 px-3 py-2 transition-colors"
+                      onClick={() => {
+                        const parts = h.split(' | ');
+                        const t = parts.slice(2).join(' | ');
+                        setText(t.toUpperCase());
+                      }}
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>
+    </div>
     </main>
   );
 }

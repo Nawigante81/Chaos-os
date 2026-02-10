@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Analytics } from '@/components/analytics';
+import { ServiceWorkerRegister } from '@/components/sw-register';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -20,13 +22,13 @@ export const metadata: Metadata = {
   },
   description:
     'Zestaw generatorów: wymówki, paski TVP, wyrocznia chaosu, soundboard, gastro match i więcej. Projekt pokazowy.',
-  metadataBase: new URL('http://54.37.228.166:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://54.37.228.166:3000'),
   openGraph: {
     title: 'CHAOS OS — kreatory memów i absurdów',
     description:
       'Zestaw generatorów: wymówki, paski TVP, wyrocznia chaosu, soundboard, gastro match i więcej.',
     type: 'website',
-    url: 'http://54.37.228.166:3000',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://54.37.228.166:3000',
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,6 +58,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Analytics />
+          <ServiceWorkerRegister />
           {children}
         </ThemeProvider>
       </body>

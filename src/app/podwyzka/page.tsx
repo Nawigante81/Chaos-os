@@ -49,7 +49,7 @@ export default function PodwyzkaPage() {
     if (newPatience <= 0) {
       setGameOver(true);
       toast.error('ZWOLNIONY!', { description: 'Szef stracił cierpliwość.' });
-    } else if (Math.random() > 0.9) { // 10% chance to win randomly
+    } else if (Math.random() > 0.9) { // eslint-disable-line react-hooks/purity -- randomness is part of the game loop
       setWin(true);
       toast.success('SUKCES!', { description: 'Dostałeś 50zł brutto podwyżki!' });
     }
