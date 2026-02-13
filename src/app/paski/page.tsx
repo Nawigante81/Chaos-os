@@ -230,7 +230,7 @@ export default function PaskiPage() {
       });
       downloadDataUrl(dataUrl, `pasek-${exportSize}.jpg`);
       remember(displayText);
-    } catch (error) {
+    } catch {
       toast.error('Nie udało się wyeksportować', {
         description:
           'Jeśli używasz zewnętrznego URL bez CORS, eksport może się nie udać.',

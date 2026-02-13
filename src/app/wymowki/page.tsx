@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
@@ -75,7 +75,7 @@ export default function Home() {
     // Sort to prioritize Google voices as they tend to be higher quality
     const polishVoice = voices
       .filter(v => v.lang.includes('pl') || v.lang.includes('PL'))
-      .sort((a, b) => (a.name.includes('Google') ? -1 : 1))[0];
+      .sort((a, b) => (a.name.includes('Google') === b.name.includes('Google') ? 0 : a.name.includes('Google') ? -1 : 1))[0];
       
     if (polishVoice) {
       utterance.voice = polishVoice;

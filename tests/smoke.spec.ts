@@ -6,7 +6,7 @@ test('home loads and has CHAOS OS header', async ({ page }) => {
 });
 
 test('modules load', async ({ page }) => {
-  const paths = ['/wymowki', '/paski', '/soundboard', '/wyrocznia', '/pierdolator'];
+  const paths = ['/wymowki', '/memy', '/paski', '/soundboard', '/wyrocznia', '/pierdolator'];
   for (const p of paths) {
     await page.goto(p);
     await expect(page).toHaveURL(new RegExp(`${p}$`));

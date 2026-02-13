@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AppHeader } from '@/components/app-header';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -42,20 +42,23 @@ export default function SoundboardPage() {
     typeof window === 'undefined' ? [] : loadHistory(historyKey, 10).map((x) => x.text)
   );
 
-  const playSound = (text: string) => {
-    saveToHistory(historyKey, text, 50);
-    setHistory(loadHistory(historyKey, 10).map((x) => x.text));
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pl-PL';
-    utterance.rate = 1.1;
-    utterance.pitch = 0.9; // Slightly lower, "serious" pitch
-    
-    utterance.onstart = () => setActiveSound(text);
-    utterance.onend = () => setActiveSound(null);
-    
-    window.speechSynthesis.speak(utterance);
-  };
+  const playSound = useCallback(
+    (text: string) => {
+      saveToHistory(historyKey, text, 50);
+      setHistory(loadHistory(historyKey, 10).map((x) => x.text));
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'pl-PL';
+      utterance.rate = 1.1;
+      utterance.pitch = 0.9; // Slightly lower, "serious" pitch
+
+      utterance.onstart = () => setActiveSound(text);
+      utterance.onend = () => setActiveSound(null);
+
+      window.speechSynthesis.speak(utterance);
+    },
+    [historyKey]
+  );
 
   const sounds = playlists[playlist];
 
@@ -68,7 +71,7 @@ export default function SoundboardPage() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [sounds]);
+  }, [sounds, playSound]);
 
   return (
     <main className="min-h-[100svh] bg-slate-900">
