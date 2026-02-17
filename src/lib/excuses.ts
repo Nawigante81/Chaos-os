@@ -3,6 +3,7 @@ export const categories = [
   { id: 'social', label: 'Spotkanie / Piwo', icon: '🍺' },
   { id: 'family', label: 'Rodzina / Obiad', icon: '🏠' },
   { id: 'school', label: 'Szkoła / Uczelnia', icon: '🎓' },
+  { id: 'dating', label: 'Randka / Relacje', icon: '💔' },
 ];
 
 export const excusesData = {
@@ -138,6 +139,39 @@ export const excusesData = {
       "i teraz czekamy aż go wydali... naturalnie.",
       "i nagrywamy tik-toki zamiast się uczyć."
     ]
+  },
+  dating: {
+    intro: [
+      "Hej, nie dam rady dziś, bo",
+      "Bardzo chciałem się spotkać, ale",
+      "To mega niezręczne, jednak",
+      "Przysięgam, to nie wymówka, tylko",
+      "Wiem jak to brzmi, ale"
+    ],
+    scapegoat: [
+      "moja psychika",
+      "barber",
+      "kot znajomej",
+      "aplikacja randkowa",
+      "moja koszula",
+      "podświadomość"
+    ],
+    action: [
+      "zorganizowała mi kryzys egzystencjalny pod prysznicem",
+      "zrobił mi fryzurę na średniowiecznego mnicha",
+      "utknął w bluzie i odmówił współpracy",
+      "zbanowała mnie za zbyt dobry żart",
+      "pękła dokładnie w strategicznym miejscu",
+      "uznała, że lepiej będzie zostać w domu i jeść chipsy"
+    ],
+    consequence: [
+      "i potrzebuję chwili, żeby odzyskać twarz.",
+      "więc wolę nie traumatyzować Cię swoim wyglądem.",
+      "i prowadzę właśnie negocjacje ratunkowe.",
+      "a odwołanie przysługuje w ciągu 24 godzin.",
+      "i nie mam planu B poza kocem.",
+      "dlatego dzisiaj przegrywam z życiem."
+    ]
   }
 };
 
@@ -147,6 +181,46 @@ export const getRandomExcuse = (category: keyof typeof excusesData) => {
   const scapegoat = data.scapegoat[Math.floor(Math.random() * data.scapegoat.length)];
   const action = data.action[Math.floor(Math.random() * data.action.length)];
   const consequence = data.consequence[Math.floor(Math.random() * data.consequence.length)];
-  
+
   return `${intro} ${scapegoat} ${action}, ${consequence}`;
 };
+
+export type ExcuseTone = 'casual' | 'sms' | 'mail' | 'teams';
+
+export function formatExcuseByTone(excuse: string, tone: ExcuseTone): string {
+  const clean = (excuse || '').trim();
+  if (!clean) return '';
+
+  if (tone === 'casual') return clean;
+  if (tone === 'sms') return `Hej! ${clean} Dam znać później 🙏`;
+  if (tone === 'teams') return `Cześć, szybki update: ${clean} Będę online, jak tylko ogarnę temat.`;
+
+  return [
+    'Dzień dobry,',
+    '',
+    `${clean}`,
+    '',
+    'Przepraszam za utrudnienia i dziękuję za wyrozumiałość.',
+    '',
+    'Pozdrawiam,',
+    '[Twoje imię]',
+  ].join('\n');
+}
+
+export function pickExcuseWithBlacklist(
+  category: keyof typeof excusesData,
+  blacklist: string[],
+  maxRetries = 40
+) {
+  const normalized = blacklist.map((x) => x.trim().toLowerCase()).filter(Boolean);
+  if (normalized.length === 0) return getRandomExcuse(category);
+
+  for (let i = 0; i < maxRetries; i += 1) {
+    const candidate = getRandomExcuse(category);
+    const low = candidate.toLowerCase();
+    const blocked = normalized.some((word) => low.includes(word));
+    if (!blocked) return candidate;
+  }
+
+  return getRandomExcuse(category);
+}
