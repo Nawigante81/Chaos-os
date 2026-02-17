@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test:e2e": "start-server-and-test \"npm run start -- -p 3101\" http://127.0.0.1:3101 \"PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 playwright test\""
   },
   "dependencies": {
